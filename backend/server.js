@@ -27,7 +27,7 @@ function listenOnPort(server, requestedPort, fallbackPort, label) {
       reject(error);
     });
 
-    server.listen(actualPort, () => {
+    server.listen(actualPort, '0.0.0.0', () => {
       server.off('error', () => {});
       resolve(actualPort);
     });

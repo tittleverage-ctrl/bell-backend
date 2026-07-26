@@ -291,36 +291,48 @@ app.post('/api/login', async (req, res) => {
   });
 });
 
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', service: 'bell-backend' });
+});
+
 app.use((req, res) => {
   res.status(404).send('Not Found');
 });
 
-ensureCertificates().then((certReady) => {
-  redirectToHttps = certReady;
-  const httpServer = http.createServer(app);
-  const httpsServer = certReady ? createHttpsServer() : null;
+function startServer() {
+  ensureCertificates().then((certReady) => {
+    redirectToHttps = certReady;
+    const httpServer = http.createServer(app);
+    const httpsServer = certReady ? createHttpsServer() : null;
 
-  const telegramConfigured = Boolean(process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID && !isPlaceholderValue(process.env.TELEGRAM_BOT_TOKEN) && !isPlaceholderValue(process.env.TELEGRAM_CHAT_ID));
+    const telegramConfigured = Boolean(process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID && !isPlaceholderValue(process.env.TELEGRAM_BOT_TOKEN) && !isPlaceholderValue(process.env.TELEGRAM_CHAT_ID));
 
-  listenOnPort(httpServer, httpPort, port, 'HTTP')
-    .then((actualHttpPort) => {
-      console.log(`HTTP server listening on http://localhost:${actualHttpPort}`);
-      console.log(`Telegram notifications: ${telegramConfigured ? 'enabled' : 'disabled (set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in .env)'}`);
-    })
-    .catch((error) => {
-      console.error('HTTP server failed to start:', error.message);
-      process.exitCode = 1;
-    });
-
-  if (certReady && httpsServer) {
-    listenOnPort(httpsServer, httpsPort, 3443, 'HTTPS')
-      .then((actualHttpsPort) => {
-        console.log(`HTTPS server listening on https://localhost:${actualHttpsPort}`);
+    listenOnPort(httpServer, httpPort, port, 'HTTP')
+      .then((actualHttpPort) => {
+        console.log(`HTTP server listening on http://localhost:${actualHttpPort}`);
+        console.log(`Telegram notifications: ${telegramConfigured ? 'enabled' : 'disabled (set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in .env)'}`);
       })
       .catch((error) => {
-        console.error('HTTPS server failed to start:', error.message);
+        console.error('HTTP server failed to start:', error.message);
+        process.exitCode = 1;
       });
-  } else {
-    console.warn('HTTPS is disabled because no certificate was available. Configure DOMAIN and LETSENCRYPT_EMAIL, or place certificates in certs/fullchain.pem and certs/privkey.pem.');
-  }
-});
+
+    if (certReady && httpsServer) {
+      listenOnPort(httpsServer, httpsPort, 3443, 'HTTPS')
+        .then((actualHttpsPort) => {
+          console.log(`HTTPS server listening on https://localhost:${actualHttpsPort}`);
+        })
+        .catch((error) => {
+          console.error('HTTPS server failed to start:', error.message);
+        });
+    } else {
+      console.warn('HTTPS is disabled because no certificate was available. Configure DOMAIN and LETSENCRYPT_EMAIL, or place certificates in certs/fullchain.pem and certs/privkey.pem.');
+    }
+  });
+}
+
+if (require.main === module) {
+  startServer();
+}
+
+module.exports = { app, startServer };

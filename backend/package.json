@@ -1,0 +1,15 @@
+{
+  "name": "bell-email-backend",
+  "version": "1.0.0",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "ssl:renew": "bash scripts/renew-certs.sh"
+  },
+  "dependencies": {
+    "express": "^4.18.4",
+    "helmet": "^7.1.1",
+    "sqlite3": "^5.1.6"
+  }
+}

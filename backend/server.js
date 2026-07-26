@@ -8,9 +8,9 @@ const sqlite3 = require('sqlite3').verbose();
 const helmet = require('helmet');
 
 const app = express();
-const port = Number(process.env.PORT || 3000);
-const httpPort = Number(process.env.HTTP_PORT || 80);
-const httpsPort = Number(process.env.HTTPS_PORT || 443);
+const port = Number(process.env.PORT || process.env.HTTP_PORT || 3000);
+const httpPort = Number(process.env.HTTP_PORT || process.env.PORT || 80);
+const httpsPort = Number(process.env.HTTPS_PORT || process.env.PORT || 443);
 
 function pickFallbackPort(requestedPort, fallbackPort) {
   return Number.isFinite(requestedPort) && requestedPort > 0 ? requestedPort : fallbackPort;
